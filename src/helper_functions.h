@@ -7,12 +7,13 @@
 
 #ifndef HELPER_FUNCTIONS_H_
 #define HELPER_FUNCTIONS_H_
-
+#define _USE_MATH_DEFINES // needed to add this line because of undefined M_PI
 #include <sstream>
 #include <fstream>
 #include <math.h>
 #include <vector>
 #include "map.h"
+
 
 /*
  * Struct representing one position/control measurement.
