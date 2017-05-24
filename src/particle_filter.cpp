@@ -51,6 +51,11 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// declare random engine
 	std::default_random_engine gen;
 
+	// noise distribution
+	std::normal_distribution<double> dist_x(0, std_pos[0]);
+	std::normal_distribution<double> dist_y(0, std_pos[1]);
+	std::normal_distribution<double> dist_theta(0, std_pos[2]);
+
 	for (int i = 0; i < num_particles; i++){
 		double x = particles[i].x;
 		double y = particles[i].y;
@@ -71,11 +76,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 			y += v_dt*cos(theta);
 			// no change in theta since car is moving straight
 		}
-
-		// Add noise
-		std::normal_distribution<double> dist_x(0, std_pos[0]);
-		std::normal_distribution<double> dist_y(0, std_pos[1]);
-		std::normal_distribution<double> dist_theta(0, std_pos[2]);
 
 		particles[i].id = i;
 		particles[i].x = x + dist_x(gen);
@@ -121,6 +121,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	// standard deviations for observations
 	double std_x = std_landmark[0];
 	double std_y = std_landmark[1];
+
+	double x_denom = 2.0 * pow(std_x, 2);
+	double y_denom = 2.0 * pow(std_y, 2);
+	double dist_mult = 1.0 / (2.0*M_PI*std_x*std_y);
 
 	// for each particle;
 	for (unsigned int p = 0; p < num_particles; p++){
@@ -171,9 +175,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 			double var_x = (landmarks_in_range[obs_index].x - o_x);
 			double var_y = (landmarks_in_range[obs_index].y - o_y);
-			double exponent = pow(var_x, 2) / (2.0 * pow(std_x, 2)) + pow(var_y, 2) / (2.0 * pow(std_y, 2));
+			double exponent = pow(var_x, 2) / x_denom + pow(var_y, 2) / y_denom;
 
-			particles[p].weight *= (1.0 / (2.0*M_PI*std_x*std_y)) * exp(-exponent);
+			particles[p].weight *= dist_mult * exp(-exponent);
 		}
 
 	}
