@@ -13,7 +13,7 @@
 cd `dirname $0`
 
 # Compile code.
-mkdir -p build
-cd build
+mkdir -p build_win
+cd build_win
 cmake ..
 make -j `nproc` $*
