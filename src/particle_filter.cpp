@@ -100,8 +100,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 			double distance = dist(observations[j].x, observations[j].y, predicted[i].x, predicted[i].y);
 			if (distance < min_distance){
 				min_distance = distance;
-				//corresponding_id = predicted[i].id; // method 1
-				corresponding_id = i; // method 2
+				corresponding_id = i;
 			}
 		}
 		observations[j].id = corresponding_id;
@@ -118,6 +117,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	// Ref:
 	// https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
 	// http://planning.cs.uiuc.edu/node99.html
+
+	// standard deviations for observations
+	double std_x = std_landmark[0];
+	double std_y = std_landmark[1];
 
 	// for each particle;
 	for (unsigned int p = 0; p < num_particles; p++){
@@ -156,10 +159,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		// perform data association
 		dataAssociation(landmarks_in_range, observations_m);
 
-		// standard deviations for observation
-		double std_x = std_landmark[0];
-		double std_y = std_landmark[1];
-
 		// re-initialize particle weight
 		particles[p].weight = 1.0; 
 
@@ -170,23 +169,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			o_x = observations_m[i].x;
 			o_y = observations_m[i].y;
 
-			// method 1
-			//// get the x,y coordinates of the landmarks associated with the current observation
-			//for (unsigned int k = 0; k < landmarks_in_range.size(); k++) {
-			//	if (landmarks_in_range[k].id == obs_index) {
-			//		obs_x = landmarks_in_range[k].x;
-			//		obs_y = landmarks_in_range[k].y;
-			//	}
-			//}
-			//double var_x = (obs_x - o_x);
-			//double var_y = (obs_y - o_y);
-			//
-
-			// method 2
 			double var_x = (landmarks_in_range[obs_index].x - o_x);
 			double var_y = (landmarks_in_range[obs_index].y - o_y);
-			//
-
 			double exponent = pow(var_x, 2) / (2.0 * pow(std_x, 2)) + pow(var_y, 2) / (2.0 * pow(std_y, 2));
 
 			particles[p].weight *= (1.0 / (2.0*M_PI*std_x*std_y)) * exp(-exponent);
@@ -204,7 +188,8 @@ void ParticleFilter::resample() {
 	// w_(i) / S, 
 	// that is the weight of the ith integer divided by the sum of all n weights.
 	
-	std::random_device rd; // integer random number generator
+	// integer random number generator
+	std::random_device rd; 
 	std::mt19937 gen(rd());
 
 	// get all of the current weights
